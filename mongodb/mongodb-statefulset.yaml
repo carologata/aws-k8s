@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  namespace: grade-submission
+spec:
+  selector:
+    matchLabels:
+      app: myapp
+  serviceName: mongodb # mongodb-0 mongodb-1 
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: grade-submission
+        app.kubernetes.io/component: database
+        app.kubernetes.io/instance: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:4.4
+        ports:
+        - containerPort: 27017
+        volumeMounts:
+        - name: mongodb-persistent-storage
+          mountPath: /data/db # it depends the chosen database 
+  volumeClaimTemplates:
+  - metadata:
+      name: mongodb-persistent-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+
+
+# [ statefulset ( mongodb-1 ) ] ---> [ Persistent Volume Claim ] ---> [ Persistent Volume ] ( Physical Space from a Worker Node )
+# [ statefulset ( mongodb-2 ) ] ---> [ Persistent Volume Claim ] ---> [ Persistent Volume ] ( Physical Space from a Worker Node )
